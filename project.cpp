@@ -29,6 +29,139 @@ public:
     }
 };
 
+#include <iostream>
+#include <string>
+#include <map>
+#include <vector>
+#include <set>
+#include <algorithm>
+#include <sqlite3.h>
+#include <fstream>
+using namespace std;
+
+// User class representing each node in the social network
+class User {
+public:
+    string name;
+    string username;
+    string dob;
+    string gender;
+    
+    User() {}
+    
+    User(string n, string u, string d, string g) 
+        : name(n), username(u), dob(d), gender(g) {}
+    
+    void display() const {
+        cout << "Name: " << name << endl;
+        cout << "Username: @" << username << endl;
+        cout << "DOB: " << dob << endl;
+        cout << "Gender: " << gender << endl;
+    }
+};
+
+// Authentication System
+class AuthSystem {
+private:
+    const string CREDENTIALS_FILE = "credentials.txt";
+    
+public:
+    // Save credentials to file
+    bool saveCredentials(string username, string password) {
+        ofstream file(CREDENTIALS_FILE, ios::app);
+        if (!file.is_open()) {
+            cerr << "❌ Error opening credentials file!" << endl;
+            return false;
+        }
+        file << username << " " << password << endl;
+        file.close();
+        return true;
+    }
+    
+    // Check if username already exists
+    bool usernameExists(string username) {
+        ifstream file(CREDENTIALS_FILE);
+        if (!file.is_open()) return false;
+        
+        string user, pass;
+        while (file >> user >> pass) {
+            if (user == username) {
+                file.close();
+                return true;
+            }
+        }
+        file.close();
+        return false;
+    }
+    
+    // Verify login credentials
+    bool verifyLogin(string username, string password) {
+        ifstream file(CREDENTIALS_FILE);
+        if (!file.is_open()) {
+            cerr << "❌ No users registered yet!" << endl;
+            return false;
+        }
+        
+        string user, pass;
+        while (file >> user >> pass) {
+            if (user == username && pass == password) {
+                file.close();
+                return true;
+            }
+        }
+        file.close();
+        return false;
+    }
+    
+    // Sign up new user
+    string signUp() {
+        string username, password, confirmPass;
+        
+        cout << "\n===== SIGN UP =====" << endl;
+        cout << "Enter username: ";
+        cin >> username;
+        
+        if (usernameExists(username)) {
+            cout << "❌ Username already exists! Try logging in." << endl;
+            return "";
+        }
+        
+        cout << "Enter password: ";
+        cin >> password;
+        cout << "Confirm password: ";
+        cin >> confirmPass;
+        
+        if (password != confirmPass) {
+            cout << "❌ Passwords don't match!" << endl;
+            return "";
+        }
+        
+        if (saveCredentials(username, password)) {
+            cout << "✅ Account created successfully!" << endl;
+            return username;
+        }
+        return "";
+    }
+    
+    // Login existing user
+    string login() {
+        string username, password;
+        
+        cout << "\n===== LOGIN =====" << endl;
+        cout << "Enter username: ";
+        cin >> username;
+        cout << "Enter password: ";
+        cin >> password;
+        
+        if (verifyLogin(username, password)) {
+            cout << "✅ Login successful! Welcome back, @" << username << endl;
+            return username;
+        } else {
+            cout << "❌ Invalid username or password!" << endl;
+            return "";
+        }
+    }
+};
 
 int main() {
     SocialNetworkGraph network;
